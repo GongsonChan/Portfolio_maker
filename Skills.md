@@ -328,8 +328,13 @@ beta:
   benchmark: SPY (US 자산), 069500 (KR 자산)
   note: 혼합 포트폴리오는 시장 비중에 따라 가중 평균 beta 사용
 
-alpha:
+alpha (개별 종목 스코어링용):
   formula: annualized_return - beta × benchmark_annualized_return
+  note: 스코어링 기간 기준, 종목 선택에만 사용
+
+alpha (포트폴리오 성과 지표):
+  formula: Σ(weight[i] × (cumret[i] - benchmark_cumret[i]))
+  → 종목별 고유 벤치마크(US→SPY, KR→069500) 대비 초과수익 비중 가중평균
 
 momentum:
   formula: r_t[-momentum_window:t]   (사용자 설정 window 기간 수익률)
@@ -621,8 +626,14 @@ returns:              cumulative_return_period(portfolio_return_t)   # 테스트
 returns_annualized:   annualized_return(portfolio_return_t)          # 참고용 연환산
 volatility:           annualized_volatility(portfolio_return_t)
 sharpe_ratio:         (returns_annualized - rf) / volatility
-alpha:                returns - beta × benchmark_cumret
-  note: 테스트 기간 누적 수익률 기준 초과 성과 (표준 연환산 알파와 다름)
+alpha:
+  formula: Σ(weight[i] × (return[i] - benchmark_return[i]))   # 종목별 비중 가중평균
+  benchmark: US 종목 → SPY, KR 종목 → 069500 (종목별 고유 벤치마크 사용)
+  note:
+    - 베타 조정 없는 단순 초과수익 (직관적 해석 가능)
+    - 혼합 포트폴리오에서 단일 벤치마크 사용 시 통화·시장 혼용 문제 방지
+    - 양수 = 각 종목이 자기 시장 벤치마크를 평균적으로 초과 달성
+    - 음수 = 자기 시장 평균보다 저조 (시장 자체가 강세여도 음수 가능)
 max_drawdown:         max_drawdown(cumulative_return)
 
 ---------- 추가 표시 지표 (인샘플 참고용) ----------
