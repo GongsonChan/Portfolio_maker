@@ -156,7 +156,7 @@ if run_btn or st.session_state.get("run_analysis"):
         st.error(f"분석 실패: {result['status']}")
         st.stop()
 
-    metrics = compute_portfolio_metrics(result, macro, assets, fundamentals, params, prices)
+    metrics = compute_portfolio_metrics(result, macro, assets, fundamentals, params, prices, assets_meta=assets)
     st.session_state.result   = result
     st.session_state.metrics  = metrics
     st.session_state.params   = params

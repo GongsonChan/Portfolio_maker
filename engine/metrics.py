@@ -55,7 +55,8 @@ def _drawdown_series(cumret: pd.Series) -> pd.Series:
 
 def compute_portfolio_metrics(result: dict, macro: pd.DataFrame,
                                assets: pd.DataFrame, fundamentals: pd.DataFrame,
-                               params: dict, prices: pd.DataFrame = None) -> dict:
+                               params: dict, prices: pd.DataFrame = None,
+                               assets_meta: pd.DataFrame = None) -> dict:
     cumret = result["cumret"]
     weights = result["weights"]
     backtest_months = result["backtest_months"]
@@ -88,20 +89,47 @@ def compute_portfolio_metrics(result: dict, macro: pd.DataFrame,
     sharpe = (ret_ann - rf) / vol if vol > 0 else np.nan
     mdd = _mdd(cumret)
 
-    # alpha vs benchmark
+    # alpha vs benchmark — 혼합 포트폴리오는 US/KR 비중에 따라 가중 벤치마크 사용
     bench_results = result.get("benchmarks", {})
-    bench_key = "SPY" if params.get("allow_us") else "069500"
+
+    def _blended_bench(port_weights, assets_df, bench_res):
+        """포트폴리오 내 US/KR 비중 비례로 SPY·069500 수익률 블렌딩"""
+        if assets_df is None:
+            return "SPY" if "SPY" in bench_res else "069500"
+        meta = assets_df.set_index("ticker")
+        us_w = sum(w for t, w in port_weights.items()
+                   if t in meta.index and meta.loc[t, "market"] == "US")
+        kr_w = sum(w for t, w in port_weights.items()
+                   if t in meta.index and meta.loc[t, "market"] == "KR")
+        total = us_w + kr_w
+        if total == 0:
+            return "SPY"
+        us_ratio = us_w / total
+        # 블렌딩된 수익률 Series 반환
+        spy_r   = bench_res.get("SPY")
+        kr_r    = bench_res.get("069500")
+        if spy_r is not None and kr_r is not None and us_ratio not in (0.0, 1.0):
+            common_idx = spy_r.index.intersection(kr_r.index)
+            blended = spy_r.loc[common_idx] * us_ratio + kr_r.loc[common_idx] * (1 - us_ratio)
+            return blended
+        return spy_r if us_ratio >= 0.5 else kr_r
+
+    bench_series = _blended_bench(weights, assets_meta if assets_meta is not None else assets, bench_results)
+
     alpha = np.nan
-    if bench_key in bench_results:
-        b_ret = _ann_return(bench_results[bench_key])
-        port_r = cumret.pct_change().dropna()
-        bench_r = bench_results[bench_key].pct_change().dropna()
-        common = port_r.index.intersection(bench_r.index)
-        if len(common) > 10:
-            cov_ab = np.cov(port_r.loc[common], bench_r.loc[common])[0, 1]
-            var_b  = bench_r.loc[common].var()
-            beta   = cov_ab / var_b if var_b > 0 else np.nan
-            alpha  = ret - beta * b_ret if not np.isnan(beta) else np.nan
+    if bench_series is not None:
+        b_series = bench_series if isinstance(bench_series, pd.Series) \
+                   else bench_results.get(bench_series)
+        if b_series is not None:
+            b_ret  = _ann_return(b_series)
+            port_r = cumret.pct_change().dropna()
+            bench_r = b_series.pct_change().dropna()
+            common = port_r.index.intersection(bench_r.index)
+            if len(common) > 10:
+                cov_ab = np.cov(port_r.loc[common], bench_r.loc[common])[0, 1]
+                var_b  = bench_r.loc[common].var()
+                beta   = cov_ab / var_b if var_b > 0 else np.nan
+                alpha  = ret - beta * b_ret if not np.isnan(beta) else np.nan
 
     # dividend yield (weighted average)
     # US는 % 형식(예: 2.77 = 2.77%), KR은 소수점 형식(예: 0.0422 = 4.22%)으로 혼재
@@ -137,17 +165,24 @@ def compute_portfolio_metrics(result: dict, macro: pd.DataFrame,
         pr_vol = _ann_vol(pc)
         pr_sh  = (pr_ret_ann - rf) / pr_vol if pr_vol > 0 else np.nan
         pr_mdd = _mdd(pc)
+        # 프리셋 고유 벤치마크 — 프리셋 자체 weights 기준으로 US/KR 비중 계산
         pr_alpha = np.nan
-        if bench_key in bench_results:
-            b_ret = _ann_return(bench_results[bench_key])
-            port_r = pc.pct_change().dropna()
-            bench_r = bench_results[bench_key].pct_change().dropna()
-            common = port_r.index.intersection(bench_r.index)
-            if len(common) > 10:
-                cov_ab = np.cov(port_r.loc[common], bench_r.loc[common])[0, 1]
-                var_b  = bench_r.loc[common].var()
-                beta   = cov_ab / var_b if var_b > 0 else np.nan
-                pr_alpha = pr_ret - beta * b_ret if not np.isnan(beta) else np.nan
+        pr_bench_series = _blended_bench(pr["weights"],
+                                          assets_meta if assets_meta is not None else assets,
+                                          bench_results)
+        if pr_bench_series is not None:
+            pr_b = pr_bench_series if isinstance(pr_bench_series, pd.Series) \
+                   else bench_results.get(pr_bench_series)
+            if pr_b is not None:
+                b_ret  = _ann_return(pr_b)
+                port_r = pc.pct_change().dropna()
+                bench_r = pr_b.pct_change().dropna()
+                common = port_r.index.intersection(bench_r.index)
+                if len(common) > 10:
+                    cov_ab = np.cov(port_r.loc[common], bench_r.loc[common])[0, 1]
+                    var_b  = bench_r.loc[common].var()
+                    beta   = cov_ab / var_b if var_b > 0 else np.nan
+                    pr_alpha = pr_ret - beta * b_ret if not np.isnan(beta) else np.nan
         # 프리셋 배당수익률
         pr_div = 0.0
         for t, w in pr["weights"].items():
