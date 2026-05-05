@@ -15,7 +15,7 @@ def _get_api_key() -> str:
             return ""
 
 
-def render_insight(metrics: dict, result: dict, params: dict) -> str:
+def render_insight(metrics: dict, result: dict, params: dict, assets_df=None) -> str:
     api_key = _get_api_key()
     if not api_key:
         return "GPT API 키가 설정되지 않았습니다. .streamlit/secrets.toml에 GPT 키를 입력해주세요."
@@ -25,12 +25,21 @@ def render_insight(metrics: dict, result: dict, params: dict) -> str:
     benchmarks = metrics.get("benchmarks", {})
 
     selected_assets = []
+    sector_w: dict[str, float] = {}
+    max_weight = 0.0
     for t in result.get("selected", []):
-        from engine.backtest import run_backtest
-        selected_assets.append({
-            "ticker": t,
-            "weight": round(result["weights"].get(t, 0) * 100, 1),
-        })
+        w = round(result["weights"].get(t, 0) * 100, 1)
+        entry = {"ticker": t, "weight": w}
+        if assets_df is not None:
+            row = assets_df[assets_df["ticker"] == t]
+            if not row.empty:
+                entry["name"]       = str(row.iloc[0].get("name", t))
+                entry["sector"]     = str(row.iloc[0].get("sector", ""))
+                entry["asset_type"] = str(row.iloc[0].get("asset_type", "stock"))
+                sect = entry["sector"] if entry["asset_type"] == "stock" else entry["asset_type"]
+                sector_w[sect] = round(sector_w.get(sect, 0) + w, 1)
+        max_weight = max(max_weight, w)
+        selected_assets.append(entry)
 
     payload = {
         "strategy": params.get("preset_choice", "custom"),
@@ -43,6 +52,8 @@ def render_insight(metrics: dict, result: dict, params: dict) -> str:
         "max_drawdown":   round(user.get("max_drawdown", 0) * 100, 2),
         "dividend_yield": round(user.get("dividend_yield", 0) * 100, 2),
         "portfolio_score": round(user.get("portfolio_score", 0), 3),
+        "sector_weights":   {k: v for k, v in sorted(sector_w.items(), key=lambda x: -x[1])},
+        "top_holding_weight": round(max_weight, 1),
         "benchmark_returns": {k: round(v.get("returns", 0) * 100, 2) for k, v in benchmarks.items()},
         "preset_comparison": {
             k: {

@@ -241,7 +241,7 @@ render_recommendation(rec, assets)
 st.markdown("### AI 인사이트")
 if st.session_state.get("insight") is None:
     with st.spinner("AI 인사이트 생성 중..."):
-        insight_text = render_insight(metrics, result, params)
+        insight_text = render_insight(metrics, result, params, assets_df=assets)
         st.session_state.insight = insight_text
     st.info(insight_text)
 else:
