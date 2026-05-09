@@ -93,7 +93,7 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
         ))
 
     p["scoring_months"] = st.sidebar.slider(
-        "스코어링 기간 (개월)", 6, 36, defaults.get("scoring_months", 24),
+        "스코어링 기간 (개월)", 1, 30, defaults.get("scoring_months", 24),
         help=(
             "종목 점수 계산에 사용할 과거 데이터 기간(M)입니다.\n"
             "이 기간의 수익률·변동성 등으로 종목을 평가합니다.\n\n"
@@ -105,9 +105,9 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
     st.sidebar.caption(f"스코어링: 약 {yrs_s}년 {mths_s}개월" if yrs_s else f"스코어링: 약 {mths_s}개월")
 
     DATA_MONTHS = 60  # 보유 데이터 총 기간
-    max_test = max(3, DATA_MONTHS - sm)
+    max_test = max(1, min(30, DATA_MONTHS - sm))
     p["test_months"] = st.sidebar.slider(
-        "테스트 기간 (개월)", 3, min(36, max_test),
+        "테스트 기간 (개월)", 1, max_test,
         min(defaults.get("test_months", 12), max_test),
         help=(
             "포트폴리오 성과를 평가할 아웃오브샘플 기간(N)입니다.\n"

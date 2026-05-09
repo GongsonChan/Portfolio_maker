@@ -22,13 +22,13 @@ correlation_data:     correlation_matrix.csv (수익률 기반 자산 간 상관
 ---------- User Parameters ----------
 scoring_months (M):
   type: int
-  range: [6, 36]
+  range: [1, 30]
   unit: 개월(month)
   description: "종목 점수 계산에 사용할 과거 데이터 기간. 스코어링 기간: [end-N-M, end-N]"
 
 test_months (N):
   type: int
-  range: [3, 36]
+  range: [1, 30]
   unit: 개월(month)
   description: "아웃오브샘플 성과 평가 기간. 테스트 기간: [end-N, end]"
   제약: scoring_months + test_months ≤ 60 (데이터 총 기간)
@@ -581,26 +581,30 @@ test_months (N):    테스트 기간. 아웃오브샘플 성과 평가에 사용
   테스트 기간:  [end - N, end]            → 성과 평가 (데이터 누수 없음)
   현재 추천:    [end - M, end]            → 최근 M개월로 스코어링 후 현재 포폴 추천
 
-권장 범위: scoring_months 12~36, test_months 6~24
+설정 범위: scoring_months 1~30, test_months 1~30
   총 필요 데이터 = M + N ≤ 60개월 (데이터 수집 기간 한계)
+  두 값의 합이 최대 60이며, 각각 최대 30이므로 항상 범위 내 보장
 
-# 하위 호환: backtest_months = test_months
+# 하위 호환: backtest_months = test_months (내부 처리용, 최대 30)
   - 데이터 수집 기간: 2021-04-22 ~ 2026-04-22 (총 60개월)
-  - backtest_months ≤ 30 권장: 스코어링/테스트 기간이 균등하게 분리됨
-  - backtest_months > 30 시: 스코어링 기간이 데이터 시작일에 의해 단축될 수 있음
 rebalance: 없음 (buy-and-hold, 단순화)
 cost: 없음 (단순화)
 
 ---------- 프리셋 포트폴리오 계산 ----------
 # 차트/테이블 비교를 위해 Aggressive·Balanced·Conservative 포트폴리오를 백그라운드 계산
-# 사용자 포트폴리오와 동일 조건으로 실행:
-#   - 동일 universe (동일 필터 적용)
-#   - 동일 backtest_months 기간 (사용자 변경 시 즉시 반영)
-#   - num_assets: 사용자 num_assets와 동일하게 사용
+#
+# [고정값 — 프리셋별 독립 설정, 사용자 영향 없음]
+#   - num_assets: 프리셋 고유 고정값 (Aggressive=6, Balanced=10, Conservative=15)
+#   - allow_kr: 프리셋별 독립 (Balanced=True, 나머지=False)
+#   - filters: 프리셋별 독립 (Conservative만 RSI·VaR/CVaR 필터 ON)
+#   - weight_*: 프리셋 고유 가중치
+#
+# [공유값 — 사용자 설정과 동일하게 사용]
+#   - scoring_months, test_months: 사용자 기간 설정 반영
 #   - forced_stocks + forced_assets: 사용자 선택 동일하게 적용
 #   - forced_assets_weight: 사용자 값 동일하게 사용
-#     (greedy 대상은 forced_stocks 제외, forced_assets는 원래부터 universe 밖)
-#   - 각 프리셋 core 가중치로 score 계산 → Greedy 선택 → 백테스트
+#
+# → 공정 비교: 전략 특성(가중치·필터·종목수·시장)은 고정, 기간과 헷징 자산만 공유
 
 ---------- 계산 ----------
 portfolio_return_t = sum(weight[i] × r_t[i]   for i in selected)
@@ -608,7 +612,7 @@ cumulative_return  = cumprod(1 + portfolio_return_t) - 1
 
 ---------- 벤치마크 ----------
 항상 SPY, 069500 둘 다 계산
-차트(Chart 1, 4): 토글로 SPY / 069500 선택해서 표시 (기본: SPY)
+차트(Chart 1, 4): SPY, 069500 둘 다 기본 on, 토글로 개별 on/off 가능
 테이블: SPY, 069500 둘 다 열로 표시 (혼합 여부 무관)
 
 
@@ -908,10 +912,10 @@ Core Parameters:
   num_assets:
     - 슬라이더 1~20, 정수
   scoring_months (M):
-    - 슬라이더 6~36, 정수, 오른쪽에 "스코어링: 약 X년 Y개월" 표시
+    - 슬라이더 1~30, 정수, 오른쪽에 "스코어링: 약 X년 Y개월" 표시
   test_months (N):
-    - 슬라이더 3~36, 정수, 오른쪽에 "테스트: 약 X년 Y개월" 표시
-    - 상한 자동 제한: min(36, 60 - scoring_months)
+    - 슬라이더 1~30, 정수, 오른쪽에 "테스트: 약 X년 Y개월" 표시
+    - 상한 자동 제한: min(30, 60 - scoring_months)
     - 합계 표시: "총 M+N개월 사용 / 보유 60개월"
 
 Advanced Parameters (기본 접힘):

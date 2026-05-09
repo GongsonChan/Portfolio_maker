@@ -77,6 +77,8 @@ def render_insight(metrics: dict, result: dict, params: dict, assets_df=None) ->
         "제약:\n"
         "- 단순 수치 나열 금지\n"
         "- '좋다/나쁘다' 단정 금지 → 이유 포함\n"
+        "- 섹터 언급 시 반드시 sector_weights에 있는 섹터명만 사용 (없는 섹터 창작 금지)\n"
+        "- 종목명 언급 시 selected_assets에 있는 종목만 사용\n"
         "- 3~4문장\n"
         "- 한국어"
     )
