@@ -278,14 +278,16 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
             help="고평가 종목(PER 높은 주식)을 제외합니다.")
         p["pe_max"] = st.slider("PER 상한", 5, 100, defaults.get("pe_max", 40)) if p["use_pe_filter"] else 999
 
-        p["use_pb_filter"] = st.checkbox("PBR 상한 필터", value=defaults.get("use_pb_filter", False))
+        p["use_pb_filter"] = st.checkbox("PBR 상한 필터", value=defaults.get("use_pb_filter", False),
+            help="PBR = 주가 ÷ 주당순자산. 낮을수록 자산 대비 저평가. 이 값 초과 종목을 제외합니다.")
         p["pb_max"] = st.slider("PBR 상한", 0.5, 20.0, defaults.get("pb_max", 5.0)) if p["use_pb_filter"] else 999
 
         p["use_roe_filter"] = st.checkbox("ROE 하한 필터", value=defaults.get("use_roe_filter", False),
             help="수익성 낮은 기업을 제외합니다.")
         p["roe_min"] = st.slider("ROE 하한", 0.0, 0.30, defaults.get("roe_min", 0.05), 0.01) if p["use_roe_filter"] else -999
 
-        p["use_div_filter"] = st.checkbox("배당수익률 하한 필터", value=defaults.get("use_div_filter", False))
+        p["use_div_filter"] = st.checkbox("배당수익률 하한 필터", value=defaults.get("use_div_filter", False),
+            help="무배당 또는 저배당 종목을 제외합니다.\n↑ 높이면: 배당을 많이 주는 종목만 선택\n↓ 낮추면: 소액 배당 종목도 허용")
         p["div_min"] = st.slider("배당수익률 하한", 0.0, 0.10, defaults.get("div_min", 0.01), 0.005) if p["use_div_filter"] else -999
 
         p["use_de_filter"] = st.checkbox("부채비율(D/E) 상한 필터", value=defaults.get("use_de_filter", False),
@@ -302,7 +304,8 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
         p["mcap_percentile_min"] = st.slider("시가총액 하위 N% 제외", 0, 50,
             defaults.get("mcap_percentile_min", 20)) if p["use_mcap_filter"] else 0
 
-        p["use_volume_filter"] = st.checkbox("거래량 하위 제외", value=defaults.get("use_volume_filter", False))
+        p["use_volume_filter"] = st.checkbox("거래량 하위 제외", value=defaults.get("use_volume_filter", False),
+            help="거래량이 적어 사고팔기 어려운 비유동성 종목을 제외합니다.\n↑ 높이면: 거래 활발한 종목만 선택\n↓ 낮추면: 소량 거래 종목도 허용")
         p["volume_percentile_min"] = st.slider("거래량 하위 N% 제외", 0, 50,
             defaults.get("volume_percentile_min", 20)) if p["use_volume_filter"] else 0
 
