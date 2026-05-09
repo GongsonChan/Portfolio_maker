@@ -106,9 +106,11 @@ def run_all(prices: pd.DataFrame, macro: pd.DataFrame, assets: pd.DataFrame,
             "scoring_months":  params.get("scoring_months", backtest_months),
             "test_months":     backtest_months,
             "backtest_months": backtest_months,
-            "forced_stocks":   params.get("forced_stocks", []),
-            "forced_assets":   params.get("forced_assets", []),
-            "forced_assets_weight": params.get("forced_assets_weight", 0.0),
+            # forced_assets_weight=1.0이면 프리셋은 강제 종목 없이 자기 전략대로 계산
+            # (비교 의미가 사라지므로)
+            "forced_stocks":   [] if params.get("forced_assets_weight", 0.0) >= 1.0 else params.get("forced_stocks", []),
+            "forced_assets":   [] if params.get("forced_assets_weight", 0.0) >= 1.0 else params.get("forced_assets", []),
+            "forced_assets_weight": 0.0 if params.get("forced_assets_weight", 0.0) >= 1.0 else params.get("forced_assets_weight", 0.0),
             # 나머지 임시 파라미터 기본값
             "beta_min": 0.0, "beta_max": 99.0,
             "sector_max": 99,
