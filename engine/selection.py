@@ -25,6 +25,11 @@ def select_assets(scores: pd.Series, corr_matrix: pd.DataFrame,
         selected = [scores.reindex(universe).idxmax()]
 
     # step 2: greedy correlation-aware selection
+    # forced_assets_weight=1.0이면 그리디 스킵 (강제 자산만으로 포트폴리오 구성)
+    forced_w_check = params.get("forced_assets_weight", 0.3) if all_forced else 0.0
+    if forced_w_check >= 1.0:
+        num_assets = len(selected)  # 그리디 추가 없음
+
     remaining = [t for t in universe if t not in selected]
     warnings  = []
 

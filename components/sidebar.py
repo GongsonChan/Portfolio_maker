@@ -229,7 +229,7 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
     all_forced = p["forced_stocks"] + p["forced_assets"]
     if all_forced:
         p["forced_assets_weight"] = st.sidebar.slider(
-            "강제 자산 전체 비중", 0.0, 0.8, defaults["forced_assets_weight"], 0.05,
+            "강제 자산 전체 비중", 0.0, 1.0, defaults["forced_assets_weight"], 0.05,
             help=f"강제 자산 {len(all_forced)}개에 할당할 비중 합계. 균등 분배됩니다.\n"
                  f"예) 0.3 → 각 {0.3/len(all_forced)*100:.0f}% / 나머지 주식 {(1-0.3)*100:.0f}%")
         w_each = p["forced_assets_weight"] / len(all_forced)
