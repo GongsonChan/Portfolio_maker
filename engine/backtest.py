@@ -7,8 +7,8 @@ from engine.selection import select_assets
 PRESET_FIXED = {
     # 비교군 고정 파라미터 — 사용자 설정과 무관하게 항상 동일
     "aggressive": {
-        "weight_return": 10, "weight_risk": 1, "weight_sharpe": 3,
-        "weight_alpha": 5, "weight_mdd": 1,
+        "weight_return": 10, "weight_risk": 1, "weight_sharpe": 1,
+        "weight_alpha": 8, "weight_mdd": 1,
         "num_assets": 6,
         "allow_us": True, "allow_kr": False,
         "use_momentum": True, "momentum_direction": "trend_following",
@@ -22,8 +22,8 @@ PRESET_FIXED = {
         "use_sector_limit": False,
     },
     "balanced": {
-        "weight_return": 5, "weight_risk": 4, "weight_sharpe": 6,
-        "weight_alpha": 3, "weight_mdd": 2,
+        "weight_return": 5, "weight_risk": 5, "weight_sharpe": 5,
+        "weight_alpha": 4, "weight_mdd": 5,
         "num_assets": 10,
         "allow_us": True, "allow_kr": True,
         "use_momentum": False, "momentum_direction": "trend_following",
@@ -37,8 +37,8 @@ PRESET_FIXED = {
         "use_sector_limit": False,
     },
     "conservative": {
-        "weight_return": 2, "weight_risk": 6, "weight_sharpe": 4,
-        "weight_alpha": 1, "weight_mdd": 7,
+        "weight_return": 1, "weight_risk": 9, "weight_sharpe": 8,
+        "weight_alpha": 1, "weight_mdd": 10,
         "num_assets": 15,
         "allow_us": True, "allow_kr": False,
         "use_momentum": False, "momentum_direction": "trend_following",

@@ -4,23 +4,23 @@ import pandas as pd
 
 PRESET_PARAMS = {
     "aggressive": {
-        "weight_return": 10, "weight_risk": 1, "weight_sharpe": 3,
-        "weight_alpha": 5, "weight_mdd": 1,
+        "weight_return": 10, "weight_risk": 1, "weight_sharpe": 1,
+        "weight_alpha": 8, "weight_mdd": 1,
         "num_assets": 6, "backtest_months": 36,
         "use_momentum": True, "momentum_direction": "trend_following",
         "momentum_window": 63, "momentum_weight": 0.20,
         "use_rsi_filter": False, "allow_us": True, "allow_kr": False,
     },
     "balanced": {
-        "weight_return": 5, "weight_risk": 4, "weight_sharpe": 6,
-        "weight_alpha": 3, "weight_mdd": 2,
+        "weight_return": 5, "weight_risk": 5, "weight_sharpe": 5,
+        "weight_alpha": 4, "weight_mdd": 5,
         "num_assets": 10, "backtest_months": 36,
         "use_momentum": False, "use_rsi_filter": False,
         "allow_us": True, "allow_kr": True,
     },
     "conservative": {
-        "weight_return": 2, "weight_risk": 6, "weight_sharpe": 4,
-        "weight_alpha": 1, "weight_mdd": 7,
+        "weight_return": 1, "weight_risk": 9, "weight_sharpe": 8,
+        "weight_alpha": 1, "weight_mdd": 10,
         "num_assets": 15, "backtest_months": 36,
         "use_momentum": False, "use_rsi_filter": True, "rsi_upper_bound": 65,
         "use_var_cvar_filter": True, "var_max": -0.02, "cvar_max": -0.04,
@@ -138,12 +138,13 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
             "높이면\n→ 과거에 많이 오른 종목 우선 선택, 공격적 포트폴리오\n\n"
             "낮추면\n→ 수익률보다 안전성·효율성을 더 중시"
         ))
-    p["weight_risk"] = st.sidebar.slider("리스크(변동성) 중요도", 0, 10, defaults["weight_risk"],
+    p["weight_risk"] = st.sidebar.slider("안정성(저변동성) 중요도", 0, 10, defaults["weight_risk"],
         help=(
             "계산: 연환산 변동성 = 일별수익률 표준편차 × √252\n"
-            "주가가 하루하루 얼마나 크게 흔들리는지를 연 단위로 나타냅니다. 낮을수록 안정적입니다.\n\n"
-            "높이면\n→ 변동이 적고 안정적인 종목 우선 선택, 방어적 포트폴리오\n\n"
-            "낮추면\n→ 변동성이 커도 수익률 등 다른 지표를 더 중시"
+            "이 값은 '변동성을 얼마나 싫어하냐'입니다. 높을수록 가격 흔들림이 적은 종목을 선호합니다.\n\n"
+            "주의: 공격형=1(변동성 감수), 안정형=9(변동성 강하게 회피)\n\n"
+            "높이면\n→ 가격이 안정적인 종목 우선 선택 (안정형 성향)\n\n"
+            "낮추면\n→ 변동성이 커도 감수, 수익률 등 다른 지표를 더 중시 (공격형 성향)"
         ))
     p["weight_sharpe"] = st.sidebar.slider("샤프비율 중요도", 0, 10, defaults["weight_sharpe"],
         help=(
