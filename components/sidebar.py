@@ -275,11 +275,11 @@ def render_sidebar(assets: pd.DataFrame) -> dict:
         st.markdown("---")
         st.markdown("**재무 필터**")
         p["use_pe_filter"] = st.checkbox("PER 상한 필터", value=defaults.get("use_pe_filter", False),
-            help="고평가 종목(PER 높은 주식)을 제외합니다.")
+            help="PER = 주가 ÷ 주당순이익. 낮을수록 이익 대비 저평가. 이 값 초과 종목을 제외합니다.\n↑ 높이면: 고성장 종목도 허용\n↓ 낮추면: 저평가 종목만 선택")
         p["pe_max"] = st.slider("PER 상한", 5, 100, defaults.get("pe_max", 40)) if p["use_pe_filter"] else 999
 
         p["use_pb_filter"] = st.checkbox("PBR 상한 필터", value=defaults.get("use_pb_filter", False),
-            help="PBR = 주가 ÷ 주당순자산. 낮을수록 자산 대비 저평가. 이 값 초과 종목을 제외합니다.")
+            help="PBR = 주가 ÷ 주당순자산. 낮을수록 자산 대비 저평가. 이 값 초과 종목을 제외합니다.\n↑ 높이면: 고평가 종목도 허용\n↓ 낮추면: 저평가 종목만 선택")
         p["pb_max"] = st.slider("PBR 상한", 0.5, 20.0, defaults.get("pb_max", 5.0)) if p["use_pb_filter"] else 999
 
         p["use_roe_filter"] = st.checkbox("ROE 하한 필터", value=defaults.get("use_roe_filter", False),
