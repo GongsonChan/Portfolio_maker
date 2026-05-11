@@ -195,17 +195,19 @@ def score_assets(feat: pd.DataFrame, assets: pd.DataFrame,
 
     tickers_avail = [t for t in f.index if t in prices.columns]
 
-    # 기술적 지표 — 스코어링 기간(테스트 기간 이전) 기준으로 계산
+    # 기술적 지표 — 스코어링 기간(테스트 기간 이전) 기준으로 계산 (룩어헤드 바이어스 방지)
     sm = params.get("scoring_months", backtest_months)
     end_p = prices.index.max()
     scoring_end_p   = end_p - pd.DateOffset(months=backtest_months)
     scoring_start_p = max(prices.index.min(),
                           scoring_end_p - pd.DateOffset(months=sm))
     scoring_months  = max(1, int((scoring_end_p - scoring_start_p).days / 30))
-    rsi_all = compute_rsi(prices[tickers_avail], scoring_months) if params.get("use_rsi_filter") else None
-    var_all, cvar_all = compute_var_cvar(prices[tickers_avail], scoring_months) if params.get("use_var_cvar_filter") else (None, None)
+    # 테스트 기간 데이터를 제외하고 스코어링 기간까지만 잘라서 전달
+    scoring_prices  = prices[tickers_avail].loc[:scoring_end_p]
+    rsi_all = compute_rsi(scoring_prices, scoring_months) if params.get("use_rsi_filter") else None
+    var_all, cvar_all = compute_var_cvar(scoring_prices, scoring_months) if params.get("use_var_cvar_filter") else (None, None)
     mom_window = min(params.get("momentum_window", 126), scoring_months * 21)
-    mom_all = compute_momentum(prices[tickers_avail], scoring_months, mom_window) if params.get("use_momentum") else None
+    mom_all = compute_momentum(scoring_prices, scoring_months, mom_window) if params.get("use_momentum") else None
 
     if rsi_all is not None:
         rsi_vals.update(rsi_all)
