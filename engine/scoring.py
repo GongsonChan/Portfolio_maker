@@ -58,7 +58,7 @@ def compute_features(prices: pd.DataFrame, macro: pd.DataFrame,
         else:
             beta, alpha = np.nan, np.nan
 
-        fund = fundamentals[fundamentals["ticker"] == t].sort_values("date")
+        fund = fundamentals[(fundamentals["ticker"] == t) & (fundamentals["date"] <= scoring_end)].sort_values("date")
         last = fund.iloc[-1] if len(fund) else pd.Series(dtype=float)
 
         rows.append({

@@ -73,9 +73,10 @@ def compute_portfolio_metrics(result: dict, macro: pd.DataFrame,
     # 스코어링/테스트 기간 경계 계산 (공통)
     if prices is not None:
         end_prices  = prices.index.max()
-        test_start  = end_prices - pd.DateOffset(months=backtest_months)
-        score_start = max(prices.index.min(),
-                          test_start - pd.DateOffset(months=backtest_months))
+        test_start     = end_prices - pd.DateOffset(months=backtest_months)
+        scoring_months = params.get("scoring_months", backtest_months)
+        score_start    = max(prices.index.min(),
+                             test_start - pd.DateOffset(months=scoring_months))
     else:
         test_start = score_start = None
 

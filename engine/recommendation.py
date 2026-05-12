@@ -13,7 +13,7 @@ def get_current_recommendation(prices: pd.DataFrame, macro: pd.DataFrame,
                                  assets: pd.DataFrame, fundamentals: pd.DataFrame,
                                  corr_matrix: pd.DataFrame, params: dict) -> dict:
     scoring_months  = params.get("scoring_months", params.get("backtest_months", 24))
-    backtest_months = scoring_months  # score_assets 호환용
+    backtest_months = 0  # 추천은 테스트 기간 없음 → RSI/VaR/모멘텀이 최근 scoring_months 기준으로 계산됨
     end = prices.index.max()
     start = max(prices.index.min(), end - pd.DateOffset(months=scoring_months))
 
