@@ -6,7 +6,15 @@ import pandas as pd
 
 def render_recommendation(rec: dict, assets: pd.DataFrame):
     if rec["status"] != "ok":
-        st.warning(f"현재 추천을 생성할 수 없습니다: {rec['status']}")
+        status = rec["status"]
+        if status in ("filter_empty", "nan_empty"):
+            st.warning("현재 추천을 생성할 수 없습니다.\n\n필터 조건이 너무 강력해 통과하는 종목이 없습니다. 고급 설정에서 RSI·VaR·재무 필터를 완화하거나 비활성화해 주세요.")
+        elif status == "selection_empty":
+            st.warning("종목 선택에 실패했습니다. 선택 종목 수를 줄이거나 시장 범위를 넓혀보세요.")
+        elif status == "insufficient_data":
+            st.warning("추천 생성에 필요한 데이터가 부족합니다. 스코어링 기간을 줄여보세요.")
+        else:
+            st.warning(f"현재 추천을 생성할 수 없습니다. ({status})")
         return
 
     st.markdown("---")
