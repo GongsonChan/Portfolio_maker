@@ -192,8 +192,11 @@ def compute_portfolio_metrics(result: dict, macro: pd.DataFrame,
         b_vol = _ann_vol(bc)
         b_sh  = (b_ret - rf) / b_vol if b_vol > 0 else np.nan
         b_mdd = _mdd(bc)
+        b_score_cumret = _portfolio_cumret(prices, {bname: 1.0}, score_start, test_start) if prices is not None else None
+        b_ret_scoring  = _ann_return(b_score_cumret) if b_score_cumret is not None else np.nan
         bench_metrics[bname] = {
-            "returns": b_ret, "returns_annualized": _ann_return_annualized(bc),
+            "returns": b_ret, "returns_scoring": b_ret_scoring,
+            "returns_annualized": _ann_return_annualized(bc),
             "volatility": b_vol, "sharpe_ratio": b_sh,
             "alpha": np.nan, "max_drawdown": b_mdd,
         }
