@@ -238,7 +238,7 @@ def _portfolio_score(user: dict, comparison: dict, params: dict) -> float:
         "return": "returns", "risk": "volatility",
         "sharpe": "sharpe_ratio", "alpha": "alpha", "mdd": "max_drawdown",
     }
-    risk_keys = {"risk", "mdd"}
+    risk_keys = {"risk"}
 
     scores = {}
     for key, col in metrics_map.items():
